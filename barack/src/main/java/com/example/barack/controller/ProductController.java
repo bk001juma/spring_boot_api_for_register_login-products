@@ -2,7 +2,6 @@ package com.example.barack.controller;
 
 import com.example.barack.entity.Product;
 import com.example.barack.service.ProductService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,14 +12,10 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-
-    @Value("${image.storage.path}")
-    private String imageStoragePath;
 
     private final ProductService productService;
 
@@ -37,7 +32,6 @@ public class ProductController {
             @RequestParam("image") MultipartFile imageFile) {
 
         try {
-            // Create a new Product
             Product product = new Product();
             product.setName(name);
             product.setCategory(category);
@@ -53,9 +47,13 @@ public class ProductController {
             response.put("category", savedProduct.getCategory());
             response.put("description", savedProduct.getDescription());
             response.put("price", savedProduct.getPrice());
-            response.put("image","http://192.168.0.43:8080/" + savedProduct.getImage());
+            response.put("image", "Image stored in database"); // Indicating that the image is stored in DB
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         } catch (IOException e) {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to save product due to a file handling issue. Please try again.");
@@ -77,7 +75,7 @@ public class ProductController {
                     response.put("category", product.getCategory());
                     response.put("description", product.getDescription());
                     response.put("price", product.getPrice());
-                    response.put("image", product.getImage());
+                    response.put("image", "Image data stored in database"); // Indicating that the image is stored in DB
                     return ResponseEntity.ok(response);
                 })
                 .orElseGet(() -> {
@@ -88,8 +86,8 @@ public class ProductController {
     }
 
     @GetMapping("get")
-    public ResponseEntity<List<Product>> getAllProducts(){
-        List<Product> products= productService.getAllProducts();
+    public ResponseEntity<List<Product>> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
         return ResponseEntity.ok(products);
     }
 
@@ -116,6 +114,7 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
+
     @RestController
     public class DebugController {
         @GetMapping("/test")
@@ -123,5 +122,4 @@ public class ProductController {
             return "Server is running!";
         }
     }
-
 }
