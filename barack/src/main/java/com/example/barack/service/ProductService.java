@@ -62,6 +62,7 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
+
     public void deleteProduct(int id) {
         productRepository.deleteById(id);
     }
